@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10182f">
+<meta name="description" content="Government exam preparation and quizzes">
+<link rel="manifest" href="./manifest.json">
+<title>GovtExamQuiz</title>
+<style>
+:root{--bg:#0b1120;--card:#151f35;--line:#293750;--blue:#5285ff;--muted:#a7b3cb;--green:#35c991;--red:#ff6b79}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f5f7ff;font-family:system-ui,sans-serif}
+button,select{font:inherit}button{cursor:pointer}
+.app{max-width:760px;margin:auto;padding:20px 15px 35px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{background:var(--blue);padding:12px;border-radius:14px;font-size:23px}
+h1{font-size:19px;margin:0}.subtitle{color:var(--muted);font-size:12px;margin-top:4px}
+.lang,.secondary,select{background:var(--card);color:white;border:1px solid var(--line);border-radius:10px;padding:10px}
+.hero{padding:24px 19px;border-radius:22px;background:linear-gradient(135deg,#1b3260,#20204a);margin-bottom:24px}
+.eyebrow{font-size:11px;letter-spacing:1.3px;color:#9fbbff;font-weight:700}
+.hero h2{font-size:29px;line-height:1.25;margin:12px 0}
+.hero p{font-size:14px;color:#d0d9ef;line-height:1.6}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{padding:9px 11px;background:#ffffff12;border-radius:10px;font-size:12px}
+.section{font-size:18px;margin:23px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.card{background:var(--card);border:1px solid var(--line);color:white;text-align:left;padding:16px 13px;border-radius:15px}
+.card.selected{border:2px solid var(--blue);background:#1b2b4b}
+.card .emoji{font-size:27px}.card h3{font-size:15px;margin:10px 0 5px}
+.card p{color:var(--muted);font-size:12px;margin:0}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:7px}
+select{width:100%}
+.primary{width:100%;border:0;background:var(--blue);color:white;border-radius:12px;padding:14px;font-weight:700}
+.primary:disabled{opacity:.4}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.topline{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
+.track{height:6px;background:var(--line);border-radius:9px;margin:15px 0 22px;overflow:hidden}
+.bar{height:100%;background:var(--blue);transition:width .2s}
+.timer{color:#9fbbff;font-weight:800}.timer.danger{color:var(--red)}
+.question{font-size:21px;line-height:1.5;margin:15px 0 20px}
+.options{display:grid;gap:10px}
+.option{background:#10182a;color:white;text-align:left;border:1px solid var(--line);border-radius:12px;padding:13px}
+.option.correct{border-color:var(--green);background:#123a32}
+.option.wrong{border-color:var(--red);background:#44212e}
+.option:disabled{cursor:default}
+.feedback{font-size:13px;line-height:1.5;margin-top:14px}
+.actions{display:flex;gap:10px;margin-top:18px}.actions button{flex:1}
+.result{text-align:center;padding:18px 5px}
+.score{font-size:48px;font-weight:800;color:#91b2ff;margin:12px}
+.review-item{padding:13px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.7}
+.hidden{display:none!important}
+footer{text-align:center;color:#8290aa;font-size:11px;margin-top:26px}
+@media(max-width:360px){.app{padding:14px 10px}.hero h2{font-size:25px}.card{padding:12px 9px}.question{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><div class="logo">🎓</div><div>
+ <h1>GovtExamQuiz</h1><div class="subtitle" id="tagline"></div></div></div>
+ <button class="lang" id="langBtn">हिन्दी</button>
+</header>
+
+<main id="home">
+<section class="hero">
+ <div class="eyebrow" id="eyebrow"></div>
+ <h2 id="heroTitle"></h2><p id="heroText"></p>
+ <div class="pills"><div class="pill" id="statTimer"></div>
+ <div class="pill" id="statOffline"></div><div class="pill" id="statScore"></div></div>
+</section>
+<h2 class="section" id="chooseTitle"></h2>
+<div class="grid" id="categories"></div>
+<div class="settings">
+ <div><label id="difficultyLabel" for="difficulty"></label>
+ <select id="difficulty">
+ <option value="all">All levels</option><option value="Easy">Easy</option>
+ <option value="Medium">Medium</option><option value="Hard">Hard</option>
+ </select></div>
+ <div><label id="countLabel" for="count"></label>
+ <select id="count"><option value="5">5</option>
+ <option value="10" selected>10</option><option value="15">15</option></select></div>
+</div>
+<button class="primary" id="startBtn" disabled></button>
+<p class="subtitle" id="homeNote"></p>
+</main>
+
+<section id="quiz" class="hidden"><div class="panel">
+ <div class="topline"><span id="progressText"></span><span id="timer" class="timer">30s</span></div>
+ <div class="track"><div class="bar" id="bar"></div></div>
+ <div class="eyebrow" id="quizCategory"></div>
+ <h2 class="question" id="question"></h2><div class="options" id="options"></div>
+ <div class="feedback" id="feedback" aria-live="polite"></div>
+ <div class="actions"><button class="secondary" id="quitBtn"></button>
+ <button class="primary" id="nextBtn" disabled></button></div>
+</div></section>
+
+<section id="results" class="hidden"><div class="panel">
+ <div class="result"><div style="font-size:42px">🏆</div>
+ <h2 id="resultTitle"></h2><div class="score" id="score">0%</div>
+ <p id="resultMessage"></p></div>
+ <div class="grid">
+ <div class="pill"><span id="totalLabel"></span>: <b id="total">0</b></div>
+ <div class="pill">✅ <span id="correctLabel"></span>: <b id="correct">0</b></div>
+ <div class="pill">❌ <span id="wrongLabel"></span>: <b id="wrong">0</b></div>
+ <div class="pill">⏱️ <span id="timeLabel"></span>: <b id="elapsed">0s</b></div>
+ </div>
+ <h2 class="section" id="reviewTitle"></h2><div id="review"></div>
+ <div class="actions"><button class="secondary" id="homeBtn"></button>
+ <button class="primary" id="againBtn"></button></div>
+</div></section>
+<footer>GovtExamQuiz · Learn every day 📚</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const categories=[
+{id:"SSC",icon:"📚",en:"SSC Exams",hi:"SSC परीक्षाएँ",desc:"CGL • CHSL • MTS"},
+{id:"Railway",icon:"🚆",en:"Railway",hi:"रेलवे",desc:"Railway practice"},
+{id:"Banking",icon:"🏦",en:"Banking",hi:"बैंकिंग",desc:"Bank exam practice"},
+{id:"MP Police",icon:"🛡️",en:"MP Police",hi:"MP पुलिस",desc:"Constable practice"}
+];
+const questions=[
+{c:"SSC",d:"Easy",en:"What is the capital of India?",hi:"भारत की राजधानी क्या है?",o:["Mumbai","New Delhi","Kolkata","Chennai"],oh:["मुंबई","नई दिल्ली","कोलकाता","चेन्नई"],a:1},
+{c:"SSC",d:"Easy",en:"What is 15 × 4?",hi:"15 × 4 कितना है?",o:["45","50","60","65"],oh:["45","50","60","65"],a:2},
+{c:"SSC",d:"Easy",en:"Which planet is known as the Red Planet?",hi:"लाल ग्रह किसे कहा जाता है?",o:["Venus","Mars","Jupiter","Mercury"],oh:["शुक्र","मंगल","बृहस्पति","बुध"],a:1},
+{c:"SSC",d:"Medium",en:"What is the square root of 144?",hi:"144 का वर्गमूल क्या है?",o:["10","11","12","14"],oh:["10","11","12","14"],a:2},
+{c:"SSC",d:"Medium",en:"Which is the largest planet in our solar system?",hi:"सौरमंडल का सबसे बड़ा ग्रह कौन-सा है?",o:["Earth","Saturn","Jupiter","Neptune"],oh:["पृथ्वी","शनि","बृहस्पति","वरुण"],a:2},
+{c:"Railway",d:"Easy",en:"What does CPU stand for?",hi:"CPU का पूरा नाम क्या है?",o:["Central Processing Unit","Computer Personal Unit","Central Program Utility","Control Power Unit"],oh:["सेंट्रल प्रोसेसिंग यूनिट","कंप्यूटर पर्सनल यूनिट","सेंट्रल प्रोग्राम यूटिलिटी","कंट्रोल पावर यूनिट"],a:0},
+{c:"Railway",d:"Easy",en:"How many days are there in a leap year?",hi:"लीप वर्ष में कितने दिन होते हैं?",o:["364","365","366","367"],oh:["364","365","366","367"],a:2},
+{c:"Railway",d:"Medium",en:"Which instrument measures temperature?",hi:"तापमान मापने का यंत्र कौन-सा है?",o:["Barometer","Thermometer","Ammeter","Speedometer"],oh:["बैरोमीटर","थर्मामीटर","अमीटर","स्पीडोमीटर"],a:1},
+{c:"Railway",d:"Medium",en:"What is the chemical symbol for iron?",hi:"लोहे का रासायनिक प्रतीक क्या है?",o:["Ir","I","Fe","In"],oh:["Ir","I","Fe","In"],a:2},
+{c:"Banking",d:"Easy",en:"What does ATM stand for?",hi:"ATM का पूरा नाम क्या है?",o:["Automated Teller Machine","Any Time Money","Automatic Transfer Mode","Advanced Teller Method"],oh:["ऑटोमेटेड टेलर मशीन","एनी टाइम मनी","ऑटोमैटिक ट्रांसफर मोड","एडवांस्ड टेलर मेथड"],a:0},
+{c:"Banking",d:"Easy",en:"What is 25% of 200?",hi:"200 का 25% कितना है?",o:["25","40","50","75"],oh:["25","40","50","75"],a:2},
+{c:"Banking",d:"Medium",en:"Which institution is India's central bank?",hi:"भारत का केंद्रीय बैंक कौन-सा है?",o:["SBI","RBI","NABARD","SEBI"],oh:["SBI","RBI","NABARD","SEBI"],a:1},
+{c:"MP Police",d:"Easy",en:"What is the capital of Madhya Pradesh?",hi:"मध्य प्रदेश की राजधानी क्या है?",o:["Indore","Gwalior","Bhopal","Jabalpur"],oh:["इंदौर","ग्वालियर","भोपाल","जबलपुर"],a:2},
+{c:"MP Police",d:"Easy",en:"Which emergency number is used for police assistance in India?",hi:"भारत में आपातकालीन सहायता का नंबर क्या है?",o:["101","102","112","108"],oh:["101","102","112","108"],a:2},
+{c:"MP Police",d:"Medium",en:"How many sides does a hexagon have?",hi:"षट्भुज की कितनी भुजाएँ होती हैं?",o:["5","6","7","8"],oh:["5","6","7","8"],a:1}
+];
+const T={
+en:{tagline:"Prepare. Practise. Succeed.",eyebrow:"YOUR SUCCESS STARTS HERE",title:"Prepare smarter. Achieve more. 🚀",desc:"Practise for government exams with quick quizzes and instant results.",timer:"⏱ 30 sec/question",offline:"📶 Offline ready",score:"📊 Instant score",choose:"Choose your exam",difficulty:"Difficulty",all:"All levels",count:"Questions",start:"Start Quiz →",first:"Choose an exam first →",note:"Demo questions included. More can be added later.",question:"Question",of:"of",next:"Next →",exit:"Exit",completed:"Quiz completed!",keep:"Keep practising!",excellent:"Excellent work!",total:"Total",correct:"Correct",wrong:"Wrong",time:"Time",review:"Answer review",home:"Home",again:"Try again",right:"Correct answer!",incorrect:"Incorrect.",timed:"Time is up!",your:"Your answer",unanswered:"Not answered",answer:"Correct answer",empty:"No questions for this level. Choose All levels."},
+hi:{tagline:"तैयारी करें। अभ्यास करें। सफल बनें।",eyebrow:"आपकी सफलता यहीं से शुरू",title:"बेहतर तैयारी करें। आगे बढ़ें। 🚀",desc:"सरकारी परीक्षाओं के लिए क्विज़ और तुरंत परिणाम के साथ अभ्यास करें।",timer:"⏱ हर प्रश्न के 30 सेकंड",offline:"📶 ऑफलाइन तैयारी",score:"📊 तुरंत स्कोर",choose:"अपनी परीक्षा चुनें",difficulty:"कठिनाई",all:"सभी स्तर",count:"प्रश्न",start:"क्विज़ शुरू करें →",first:"पहले परीक्षा चुनें →",note:"डेमो प्रश्न शामिल हैं। बाद में और प्रश्न जोड़े जा सकते हैं।",question:"प्रश्न",of:"में से",next:"अगला →",exit:"बाहर जाएँ",completed:"क्विज़ पूरा हुआ!",keep:"अभ्यास जारी रखें!",excellent:"बहुत बढ़िया!",total:"कुल",correct:"सही",wrong:"गलत",time:"समय",review:"उत्तर की समीक्षा",home:"होम",again:"फिर से प्रयास करें",right:"सही उत्तर!",incorrect:"गलत उत्तर।",timed:"समय समाप्त!",your:"आपका उत्तर",unanswered:"उत्तर नहीं दिया",answer:"सही उत्तर",empty:"इस स्तर के प्रश्न नहीं हैं। सभी स्तर चुनें।"}
+};
+let lang="en",selected="",quiz=[],index=0,answers=[],timerId=null,remaining=30,startedAt=0,locked=false;
+const t=k=>T[lang][k]||k;
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){["home","quiz","results"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function renderCategories(){
+$("categories").innerHTML="";
+categories.forEach(c=>{
+const b=document.createElement("button");b.className="card"+(selected===c.id?" selected":"");
+const h=document.createElement("h3");h.textContent=lang==="en"?c.en:c.hi;
+const em=document.createElement("div");em.className="emoji";em.textContent=c.icon;
+const p=document.createElement("p");p.textContent=c.desc;
+b.append(em,h,p);b.onclick=()=>{selected=c.id;renderCategories();updateStart()};
+$("categories").appendChild(b);
+});
+}
+function updateStart(){$("startBtn").disabled=!selected;$("startBtn").textContent=selected?t("start"):t("first")}
+function translateUI(){
+document.documentElement.lang=lang;
+$("langBtn").textContent=lang==="en"?"हिन्दी":"English";
+$("tagline").textContent=t("tagline");$("eyebrow").textContent=t("eyebrow");
+$("heroTitle").textContent=t("title");$("heroText").textContent=t("desc");
+$("statTimer").textContent=t("timer");$("statOffline").textContent=t("offline");
+$("statScore").textContent=t("score");$("chooseTitle").textContent=t("choose");
+$("difficultyLabel").textContent=t("difficulty");$("countLabel").textContent=t("count");
+$("difficulty").options[0].textContent=t("all");
+[...$("count").options].forEach(o=>o.textContent=o.value+" "+(lang==="en"?"questions":"प्रश्न"));
+$("homeNote").textContent=t("note");$("quitBtn").textContent=t("exit");
+$("resultTitle").textContent=t("completed");$("totalLabel").textContent=t("total");
+$("correctLabel").textContent=t("correct");$("wrongLabel").textContent=t("wrong");
+$("timeLabel").textContent=t("time");$("reviewTitle").textContent=t("review");
+$("homeBtn").textContent=t("home");$("againBtn").textContent=t("again");
+renderCategories();updateStart();
+if(!$("quiz").classList.contains("hidden")&&!locked)renderQuestion();
+}
+$("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";translateUI()};
+function startQuiz(){
+const diff=$("difficulty").value;
+const pool=questions.filter(q=>q.c===selected&&(diff==="all"||q.d===diff));
+if(!pool.length){alert(t("empty"));return}
+quiz=shuffle(pool).slice(0,Math.min(+$("count").value,pool.length));
+index=0;answers=quiz.map(()=>null);startedAt=Date.now();show("quiz");renderQuestion();
+}
+function stopTimer(){if(timerId)clearInterval(timerId);timerId=null}
+function renderQuestion(){
+stopTimer();locked=false;remaining=30;const q=quiz[index];
+$("progressText").textContent=`${t("question")} ${index+1} ${t("of")} ${quiz.length}`;
+$("bar").style.width=index/quiz.length*100+"%";$("timer").classList.remove("danger");
+$("timer").textContent="⏱ "+remaining+"s";$("quizCategory").textContent=q.c;
+$("question").textContent=q[lang==="en"?"en":"hi"];$("feedback").textContent="";
+$("nextBtn").disabled=true;$("nextBtn").textContent=index===quiz.length-1?(lang==="en"?"See Results →":"परिणाम देखें →"):t("next");
+$("options").innerHTML="";
+(lang==="en"?q.o:q.oh).forEach((option,i)=>{
+const b=document.createElement("button");b.className="option";b.textContent=String.fromCharCode(65+i)+". "+option;
+b.onclick=()=>chooseAnswer(i,false);$("options").appendChild(b);
+});
+timerId=setInterval(()=>{remaining--;$("timer").textContent="⏱ "+remaining+"s";if(remaining<=5)$("timer").classList.add("danger");if(remaining<=0)chooseAnswer(null,true)},1000);
+}
+function chooseAnswer(choice,timedOut){
+if(locked)return;locked=true;stopTimer();answers[index]=choice;const q=quiz[index];
+[...$("options").children].forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add("correct");else if(i===choice)b.classList.add("wrong")});
+$("feedback").textContent=timedOut?t("timed"):(choice===q.a?t("right"):t("incorrect"));
+if(choice!==q.a)$("feedback").textContent+=" "+t("answer")+": "+(lang==="en"?q.o[q.a]:q.oh[q.a]);
+$("nextBtn").disabled=false;
+}
+$("nextBtn").onclick=()=>{if(!locked)return;if(index<quiz.length-1){index++;renderQuestion()}else finishQuiz()};
+$("quitBtn").onclick=()=>{stopTimer();if(confirm(lang==="en"?"Exit quiz? Progress will be lost.":"क्विज़ छोड़ें? प्रगति खो जाएगी।"))show("home");else renderQuestion()};
+function finishQuiz(){
+stopTimer();const correct=answers.filter((a,i)=>a===quiz[i].a).length,total=quiz.length;
+$("score").textContent=Math.round(correct/total*100)+"%";
+$("resultMessage").textContent=correct/total>=.8?t("excellent"):t("keep");
+$("total").textContent=total;$("correct").textContent=correct;$("wrong").textContent=total-correct;
+$("elapsed").textContent=Math.round((Date.now()-startedAt)/1000)+"s";$("bar").style.width="100%";$("review").innerHTML="";
+quiz.forEach((q,i)=>{const your=answers[i],yourText=your===null?t("unanswered"):(lang==="en"?q.o[your]:q.oh[your]),rightText=lang==="en"?q.o[q.a]:q.oh[q.a];
+const item=document.createElement("div");item.className="review-item";item.textContent=`${i+1}. ${q[lang==="en"?"en":"hi"]} ${t("your")}: ${yourText}. ${t("answer")}: ${rightText}.`;$("review").appendChild(item)});
+show("results");
+}
+$("homeBtn").onclick=()=>{stopTimer();show("home")};$("againBtn").onclick=startQuiz;$("startBtn").onclick=startQuiz;
+translateUI();show("home");
+</script>
+<script>
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));
+}
+</script>
+</body>
+</html>
